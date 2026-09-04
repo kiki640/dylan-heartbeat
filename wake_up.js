@@ -549,7 +549,7 @@ ${historyText}`
       barkText = barkText.replace(/^\[BARK\]\s*/, "").trim();
       barkText = barkText.replace(/\s*\[\/BARK\]$/, "").trim();
     }
-
+    if (!barkText || barkText === '[NO_ACTION]') return;
     // 清洗“标题：”、“正文：”前缀（如果有）
     barkText = barkText
       .replace(/^标题[：:]\s*/gm, "")
