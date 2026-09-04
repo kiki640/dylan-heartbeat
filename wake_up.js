@@ -540,7 +540,7 @@ ${historyText}`
     // 没有 [NO_ACTION] 就视为想发推送
     console.log("\nAI 选择发送推送\n");
     let barkText = aiText;
-
+    barkText = barkText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     // 如果 AI 还是写了 [BARK] ... [/BARK] 标签，就剥掉
     const barkMatch = barkText.match(/\[BARK\]([\s\S]*?)\[\/BARK\]/);
     if (barkMatch) {
