@@ -77,6 +77,7 @@ async function callAI() {
 }
 
 async function pushBark(msg) {
+  msg = msg.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
   if (!BARK_KEY) { console.log('[push] 无 BARK_KEY'); return false; }
   const body = JSON.stringify({ title: '💭', body: msg, icon: ICON || undefined, group: 'thoughts' });
   return new Promise(resolve => {
