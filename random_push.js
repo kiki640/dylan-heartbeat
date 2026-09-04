@@ -6,7 +6,7 @@ const http = require('http');
 const API_URL = process.env.TARGET_API_URL;
 const API_KEY = process.env.TARGET_API_KEY;
 const BARK_KEY = process.env.BARK_KEY;
-const MODEL = (process.env.MODEL_NAME || 'gpt-4o').replace(/^\[.*?\]/, '');
+const MODEL = process.env.MODEL_NAME || 'gpt-4o';
 const TZ = process.env.TIME_ZONE || 'Asia/Shanghai';
 const ICON = process.env.CUSTOM_ICON_URL || '';
 
