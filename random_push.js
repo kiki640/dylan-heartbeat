@@ -57,7 +57,7 @@ async function callAI() {
         try {
           const json = JSON.parse(d);
           if (json.choices && json.choices[0]) {
-            const msg = json.choices[0].message.content.trim();
+            const msg = json.choices[0].message.content.trim().replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim();
             console.log(`[push] ✅ AI回复: ${msg}`);
             resolve(msg);
           } else {
