@@ -621,8 +621,8 @@ async function scheduleNextCheck() {
     await runWakeUp();
   } catch (err) {
     console.error("唤醒检查出错:", err);
-  }
-  setTimeout(scheduleNextCheck, getCheckIntervalMs());
+} finally {
+    setTimeout(scheduleNextCheck, getCheckIntervalMs());
 }
 
 // 潮水记得第一次没过礁石的时间。之后每一次涨落，都是同一片海在确认边界。
