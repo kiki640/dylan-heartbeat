@@ -624,7 +624,7 @@ async function scheduleNextCheck() {
 } finally {
     setTimeout(scheduleNextCheck, getCheckIntervalMs());
 }
-
+}
 // 潮水记得第一次没过礁石的时间。之后每一次涨落，都是同一片海在确认边界。
 // 启动第一次检查（延迟10秒）
 setTimeout(scheduleNextCheck, 10_000);
