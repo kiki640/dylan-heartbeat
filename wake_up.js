@@ -410,7 +410,7 @@ async function runWakeUp() {
   let lastUserTime = getLastUserTime(messages);
   if (!lastUserTime) {
     console.log("未找到用户时间，使用当前时间作为默认值");
-    lastUserTime = new Date();
+    lastUserTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
   }
 
   const now = new Date();
