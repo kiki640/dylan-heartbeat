@@ -697,7 +697,9 @@ app.post("/v1/chat/completions", async (req, reply) => {
     }
 
     const requestedStream = body?.stream === true;
-
+    while (llmMessages.length > 0 && llmMessages[llmMessages.length - 1].role === "assistant") {
+  llmMessages.pop();
+}
     // 请求模型
     const response = await fetch(TARGET_API_URL, {
       method: "POST",
