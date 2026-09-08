@@ -23,6 +23,23 @@ const TIME_ZONE = resolveTimeZone();
 const WEATHER_TIMEOUT_MS = 5000;
 const DIARY_DIR_NAME = process.env.DIARY_DIR || "diary";
 const DIARY_DIR_PATH = runtimeDirectory(DIARY_DIR_NAME, "diary");
+// ── 推送历史（防重复） ──
+const PUSH_HISTORY_FILE = runtimeFile("push_history.json");
+
+function getRecentPushes(count = 5) {
+  try {
+    const data = JSON.parse(fs.readFileSync(PUSH_HISTORY_FILE, "utf8"));
+    return data.slice(-count);
+  } catch { return []; }
+}
+
+function savePush(message) {
+  let data = [];
+  try { data = JSON.parse(fs.readFileSync(PUSH_HISTORY_FILE, "utf8")); } catch {}
+  data.push({ time: new Date().toISOString(), message });
+  if (data.length > 30) data = data.slice(-30);
+  fs.writeFileSync(PUSH_HISTORY_FILE, JSON.stringify(data, null, 2));
+}
 const PUSH_TIMEOUT_MS = readPositiveTimeout("PUSH_TIMEOUT_MS", 15_000);
 const WAKE_UPSTREAM_TIMEOUT_MS = readPositiveTimeout("WAKE_UPSTREAM_TIMEOUT_MS", 300_000);
 
@@ -358,8 +375,8 @@ function stripPosition(messages) {
   return messages.map(({ position, ...rest }) => rest);
 }
 
-function buildWakePrompt(currentTime, diffMinutes, weatherContext = "") {
-  // 优先读取独立的提示词文件（推荐方式）
+
+function buildWakePrompt(currentTime, diffMinutes, weatherContext = "", recentPushes = "") {
   const promptFile = path.join(__dirname, "wake_prompt.txt");
   if (fs.existsSync(promptFile)) {
     const template = fs.readFileSync(promptFile, "utf-8");
@@ -367,8 +384,10 @@ function buildWakePrompt(currentTime, diffMinutes, weatherContext = "") {
       .replace(/\$\{currentTime\}/g, currentTime)
       .replace(/\$\{diffMinutes\}/g, diffMinutes)
       .replace(/\$\{weatherContext\}/g, weatherContext)
-      .replace(/\$\{weather\}/g, weatherContext);
+      .replace(/\$\{weather\}/g, weatherContext)
+      .replace(/\$\{recentPushes\}/g, recentPushes);
   }
+  // ... 后面不变
 
   // 如果文件不存在，尝试从环境变量读取（兼容旧配置）
   if (process.env.WAKE_PROMPT_TEMPLATE) {
@@ -423,7 +442,14 @@ async function runWakeUp() {
   }
 
   const weatherContext = await fetchWeatherContext();
-  const wakePrompt = buildWakePrompt(getChinaTimeString(), diffMinutes, weatherContext);
+      // 构建最近推送历史
+  const recent = getRecentPushes(5);
+  const recentPushes = recent.length
+      ? recent.map(r => `- "${r.message}"`).join('\n')
+      : '（暂无历史）';
+
+    const wakePrompt = buildWakePrompt(getChinaTimeString(), diffMinutes, weatherContext, recentPushes);
+
   const cleanMessages = stripPosition(messages);
 
   const historyText = cleanMessages
@@ -588,6 +614,7 @@ ${historyText}`
         eventContent = `（${getLocalTimeString()} 自动唤醒：本次未发送推送｜原因：${pushResult.providerLabel} 推送失败：${pushResult.reason}）`;
       } else {
         eventContent = `（${getLocalTimeString()} 刚刚给用户发了${pushResult.providerLabel}推送：${safeTitle}｜${safeBody}）`;
+        savePush(safeBody);
       }
     }
   }
